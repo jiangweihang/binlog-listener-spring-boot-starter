@@ -1,0 +1,14 @@
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.prefs
+.classpath
+.log
+.factorypath
+/.factorypath
+*/.factorypath
+/.settings/
+target/
+/packaged
