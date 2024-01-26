@@ -1,5 +1,7 @@
 通过监听MySQL的binlog，将binlog解析成指定实体类形式, 调用被 @BinLogListener 注解标注的方法
 
+目前只支持MySQL binlog-format=ROW 的模式
+
 使用例子
 ```java
 @EnableBinlogListener
@@ -7,11 +9,7 @@
 public class BinLogApplication {
     
     public static void main(String[] args) {
-        ConfigurableApplicationContext run = SpringApplication.run(BinLogApplication.class, args);
-        ConfigurableEnvironment environment = run.getEnvironment();
-        MutablePropertySources propertySources = environment.getPropertySources();
-        PropertySource<?> binlog = propertySources.get("binlog");
-        System.out.println("init complete");
+        SpringApplication.run(BinLogApplication.class, args);
     }
     
 }
