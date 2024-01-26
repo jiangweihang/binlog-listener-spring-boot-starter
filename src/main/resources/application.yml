@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: binlog-listener-spring-boot-starter
+
+server:
+  port: 8886
+
+binlog:
+  property:
+    host: localhost
+    port: 13306
+    username: root
+    password: mysql
+    db: labscare_base_huaxi
+    table: t_a_temp
