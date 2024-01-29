@@ -1,6 +1,5 @@
 package org.binlog.test.service;
 
-import com.alibaba.fastjson.JSONObject;
 import org.binlog.listener.annotation.BinLogEvent;
 import org.binlog.listener.annotation.BinLogListener;
 import org.binlog.listener.entity.BinLogDataDto;
@@ -19,7 +18,6 @@ public class TestService {
     
     @BinLogEvent
     public void event(BinLogDataDto dto) {
-        System.out.println(JSONObject.toJSONString(dto));
         testAutowiredService.say();
     }
     

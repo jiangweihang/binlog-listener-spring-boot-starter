@@ -13,6 +13,7 @@ import org.binlog.listener.property.BinLogProperty;
 import org.binlog.listener.spring.SpringContextUtils;
 import org.binlog.listener.tactics.BinLogListener;
 import org.binlog.listener.tactics.impl.RowTypeBinLogListener;
+import org.binlog.listener.tactics.impl.StatementTypeBinLogListener;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,11 +135,12 @@ public class ListenerComponent implements ApplicationContextAware {
             if(binlogFormat == null) {
                 throw new RuntimeException("未查询到binlog配置.");
             }
-            if (binlogFormat.equals("ROW")) {
+            if (binlogFormat.equalsIgnoreCase("ROW")) {
                 //  ROW模式
                 listener = new RowTypeBinLogListener();
-            } else {
+            } else if (binlogFormat.equalsIgnoreCase("STATEMENT")){
                 //  STATEMENT模式
+                listener = new StatementTypeBinLogListener();
             }
         }
         resultSet.close();
