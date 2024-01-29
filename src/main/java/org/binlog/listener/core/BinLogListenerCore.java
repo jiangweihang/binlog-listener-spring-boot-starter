@@ -15,6 +15,9 @@ import java.util.Set;
  */
 public class BinLogListenerCore {
     
+    /**
+     * key是类名, value是代理类. 主要代理被 {@link org.binlog.listener.annotation.BinLogListener} 注解的类
+     */
     private final static Map<String, BinLogServiceProxy> PROXY_MAP = new HashMap<>();
     
     /**

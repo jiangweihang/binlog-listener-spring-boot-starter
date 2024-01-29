@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.binlog.listener.annotation.BinLogEvent;
 import org.binlog.listener.annotation.BinLogListener;
 import org.binlog.listener.entity.BinLogDataDto;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author: JiangWH
@@ -13,13 +14,17 @@ import org.binlog.listener.entity.BinLogDataDto;
 @BinLogListener(tableName = "t_a_temp")
 public class TestService {
     
+    @Autowired
+    private TestAutowiredService testAutowiredService;
+    
     @BinLogEvent
     public void event(BinLogDataDto dto) {
         System.out.println(JSONObject.toJSONString(dto));
+        testAutowiredService.say();
     }
     
     public void haha() {
-        System.out.println("hahaha");
+        testAutowiredService.say();
     }
     
 }
