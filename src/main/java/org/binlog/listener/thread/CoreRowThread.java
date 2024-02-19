@@ -34,7 +34,6 @@ public class CoreRowThread implements Runnable {
         TableMapEventData tableEventData = tableEvent.getData();
         String tableName = tableEventData.getTable();
         String database = tableEventData.getDatabase();
-        System.out.printf("database: %s, tableName: %s%n", database, tableName);
     
         List<Map<String, String>> rowList = new ArrayList<>(), updateBeforeList = new ArrayList<>();
         List<Column> columnList = BinLogListenerCore.getColumn(tableName, database);
