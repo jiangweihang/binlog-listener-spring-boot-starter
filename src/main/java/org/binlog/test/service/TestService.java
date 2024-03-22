@@ -2,7 +2,7 @@ package org.binlog.test.service;
 
 import org.binlog.listener.annotation.BinLogEvent;
 import org.binlog.listener.annotation.BinLogListener;
-import org.binlog.listener.entity.BinLogDataDto;
+import org.binlog.listener.entity.BinLogData;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -17,7 +17,8 @@ public class TestService {
     private TestAutowiredService testAutowiredService;
     
     @BinLogEvent
-    public void event(BinLogDataDto dto) {
+    public void event(BinLogData dto) {
+        System.out.println(dto.toString());
         testAutowiredService.say();
     }
     

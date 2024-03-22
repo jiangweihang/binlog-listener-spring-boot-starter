@@ -1,9 +1,9 @@
-package org.binlog.listener.thread;
+package org.binlog.listener.thread.row;
 
 import com.github.shyiko.mysql.binlog.event.*;
 import org.binlog.listener.constant.BinLogConstants;
 import org.binlog.listener.core.BinLogListenerCore;
-import org.binlog.listener.entity.BinLogDataDto;
+import org.binlog.listener.entity.row.BinLogRowData;
 import org.binlog.listener.entity.Column;
 
 import java.io.Serializable;
@@ -52,8 +52,8 @@ public class CoreRowThread implements Runnable {
         } else {
             throw new RuntimeException("未知的操作类型.");
         }
-    
-        BinLogDataDto dto = new BinLogDataDto(tableName, database, type, columnList, rowList, updateBeforeList);
+        
+        BinLogRowData dto = new BinLogRowData(tableName, database, type, columnList, rowList, updateBeforeList);
         BinLogListenerCore.run(tableName, dto);
     }
     

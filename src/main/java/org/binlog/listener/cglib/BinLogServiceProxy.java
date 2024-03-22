@@ -44,14 +44,9 @@ public class BinLogServiceProxy implements MethodInterceptor {
         } else {
             //  适配方法的参数数量, 多余的设置为空
             for(int i = 0; i < args.length; i++) {
-                Object item = null;
                 if(objects.length > i) {
-                    //  判断是否是指定返回类型
-                    if(parameterTypes[i] == objects[i].getClass()) {
-                        item = objects[i];
-                    }
+                    args[i] = objects[i];
                 }
-                args[i] = item;
             }
         }
         return method.invoke(object, args);

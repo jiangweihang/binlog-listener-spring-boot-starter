@@ -6,8 +6,8 @@ import com.github.shyiko.mysql.binlog.event.TableMapEventData;
 import org.binlog.listener.core.BinLogListenerCore;
 import org.binlog.listener.tactics.BinLogListener;
 import org.binlog.listener.thread.BinLogThreadPool;
-import org.binlog.listener.thread.ConsumeThread;
-import org.binlog.listener.thread.ProduceThread;
+import org.binlog.listener.thread.row.RowConsumeThread;
+import org.binlog.listener.thread.row.RowProduceThread;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Condition;
@@ -42,10 +42,10 @@ public class RowTypeBinLogListener implements BinLogListener {
             }
             
             //  表名等信息, 需要收录到生产者队列中
-            BinLogThreadPool.executeTask(new ProduceThread(TASK_MAP, LOCK, NOT_EMPTY, event));
+            BinLogThreadPool.executeTask(new RowProduceThread(TASK_MAP, LOCK, NOT_EMPTY, event));
         } else if(isWrite(eventType) || isUpdate(eventType) || isDelete(eventType)) {
             //  增、删、改操作
-            BinLogThreadPool.executeTask(new ConsumeThread(TASK_MAP, LOCK, NOT_EMPTY, event, this));
+            BinLogThreadPool.executeTask(new RowConsumeThread(TASK_MAP, LOCK, NOT_EMPTY, event));
         }
         
     }

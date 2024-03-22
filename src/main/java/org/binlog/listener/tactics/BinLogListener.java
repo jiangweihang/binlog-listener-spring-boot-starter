@@ -8,5 +8,5 @@ import com.github.shyiko.mysql.binlog.BinaryLogClient;
  * @description: 接口作用描述
  * @version: 1.0.0
  */
-public interface BinLogListener extends BinaryLogClient.EventListener{
+public interface BinLogListener extends BinaryLogClient.EventListener {
 }

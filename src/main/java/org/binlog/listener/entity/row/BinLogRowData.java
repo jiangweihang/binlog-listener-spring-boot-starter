@@ -1,6 +1,8 @@
-package org.binlog.listener.entity;
+package org.binlog.listener.entity.row;
 
 import org.binlog.listener.constant.BinLogConstants;
+import org.binlog.listener.entity.BinLogData;
+import org.binlog.listener.entity.Column;
 
 import java.util.List;
 import java.util.Map;
@@ -10,13 +12,7 @@ import java.util.Map;
  * @date: 2024/1/26 16:09
  * @version: 1.0.0
  */
-public class BinLogDataDto {
-    
-    private String tableName;
-    
-    private String dbName;
-    
-    private BinLogConstants.OperatorType type;
+public class BinLogRowData extends BinLogData {
     
     private List<Column> columns;
     
@@ -24,40 +20,16 @@ public class BinLogDataDto {
     
     private List<Map<String, String>> updateBefore;
     
-    public BinLogDataDto() {}
+    public BinLogRowData() {}
     
-    public BinLogDataDto(String tableName, String dbName, BinLogConstants.OperatorType type, List<Column> columns,
+    public BinLogRowData(String tableName, String dbName, BinLogConstants.OperatorType type, List<Column> columns,
                          List<Map<String, String>> data, List<Map<String, String>> updateBefore) {
-        this.tableName = tableName;
-        this.dbName = dbName;
-        this.type = type;
+        this.setTableName(tableName);
+        this.setDbName(dbName);
+        this.setType(type);
         this.columns = columns;
         this.data = data;
         this.updateBefore = updateBefore;
-    }
-    
-    public String getTableName() {
-        return tableName;
-    }
-    
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
-    }
-    
-    public String getDbName() {
-        return dbName;
-    }
-    
-    public void setDbName(String dbName) {
-        this.dbName = dbName;
-    }
-    
-    public BinLogConstants.OperatorType getType() {
-        return type;
-    }
-    
-    public void setType(BinLogConstants.OperatorType type) {
-        this.type = type;
     }
     
     public List<Column> getColumns() {
