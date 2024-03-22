@@ -189,12 +189,16 @@ public class ListenerComponent implements ApplicationContextAware {
                             Class<?> jdkProxy = servletUtil.loadClass(candidateComponent.getBeanClassName());
                             BinLogServiceProxy binLogServiceProxy = new BinLogServiceProxy(bean, method);
                         
-                            //  根据表名放到内存中管理
-                            String tableName = attributes.get("tableName").toString();
-                            if(BinLogListenerCore.contains(tableName)) {
-                                throw new Exception(String.format("The tableName [%s] already exists.", tableName));
+                            //  根据表名和数据库名称放到内存中管理
+                            String dbName = attributes.get("dbName").toString();
+                            String proxyName = attributes.get("tableName").toString();
+                            if(!StringUtils.isEmpty(dbName)) {
+                                proxyName = dbName + "." + proxyName;
                             }
-                            BinLogListenerCore.put(tableName, binLogServiceProxy);
+                            if(BinLogListenerCore.contains(proxyName)) {
+                                throw new Exception(String.format("The BinLogListener [%s] already exists.", proxyName));
+                            }
+                            BinLogListenerCore.put(proxyName, binLogServiceProxy);
                             break;
                         }
                     } catch (Exception e) {

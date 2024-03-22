@@ -18,5 +18,7 @@ public @interface BinLogListener {
      * 表名
      */
     String tableName();
+    
+    String dbName() default "";
 
 }

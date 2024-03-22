@@ -48,7 +48,7 @@ public class StatementTypeBinLogListener implements BinLogListener {
         binLogData.setType(type);
         binLogData.setTableName(binLogData.getTableName().replaceAll("`", ""));
         
-        BinLogListenerCore.run(binLogData.getTableName(), binLogData);
+        BinLogListenerCore.run(binLogData.getTableName(), binLogData.getDbName(), binLogData);
     }
     
 }

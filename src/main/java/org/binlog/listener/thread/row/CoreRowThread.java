@@ -54,7 +54,7 @@ public class CoreRowThread implements Runnable {
         }
         
         BinLogRowData dto = new BinLogRowData(tableName, database, type, columnList, rowList, updateBeforeList);
-        BinLogListenerCore.run(tableName, dto);
+        BinLogListenerCore.run(tableName, database, dto);
     }
     
     private void updateType(UpdateRowsEventData data, List<Column> columnList, List<Map<String, String>> rowList, List<Map<String, String>> updateBeforeList) {

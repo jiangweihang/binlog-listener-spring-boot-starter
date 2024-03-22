@@ -16,7 +16,7 @@ import java.util.Set;
 public class BinLogListenerCore {
     
     /**
-     * key是类名, value是代理类. 主要代理被 {@link org.binlog.listener.annotation.BinLogListener} 注解的类
+     * key是表名, value是代理类. 主要代理被 {@link org.binlog.listener.annotation.BinLogListener} 注解的类
      */
     private final static Map<String, BinLogServiceProxy> PROXY_MAP = new HashMap<>();
     
@@ -56,8 +56,12 @@ public class BinLogListenerCore {
         return PROXY_MAP.keySet();
     }
     
-    public static void run(String key, Object data) {
-        BinLogServiceProxy binLogServiceProxy = get(key);
+    public static void run(String tableName, String dbName, Object data) {
+        BinLogServiceProxy binLogServiceProxy = get(dbName + "." + tableName);
+        //  如果指定数据库+表代理的不存在, 才去获取表名代理的
+        if(binLogServiceProxy == null) {
+            binLogServiceProxy = get(tableName);
+        }
         if(binLogServiceProxy == null) {
             return;
         }
