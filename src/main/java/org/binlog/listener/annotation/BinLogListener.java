@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import java.lang.annotation.*;
 
 /**
- * 标记监听到 {@link #tableName()}表 的回调类
+ * 标记监听到 {@link #tableName}表 的回调类
  * @author Emiya
  */
 @Service

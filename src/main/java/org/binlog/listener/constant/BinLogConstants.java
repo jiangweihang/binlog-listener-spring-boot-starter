@@ -38,5 +38,20 @@ public class BinLogConstants {
          */
         DELETE
     }
+
+    public static enum BinLogMode {
+        /**
+         * STATEMENT模式
+         */
+        STATEMENT,
+        /**
+         * ROW模式
+         */
+        ROW,
+        /**
+         * MIXED模式
+         */
+        MIXED
+    }
     
 }

@@ -8,6 +8,7 @@ import org.binlog.listener.core.BinLogListenerCore;
 import org.binlog.listener.core.DruidParser;
 import org.binlog.listener.entity.BinLogData;
 import org.binlog.listener.tactics.BinLogListener;
+import org.binlog.listener.thread.BinLogThreadPool;
 
 /**
  * binlog-format=STATEMENT 时使用的策略
@@ -31,7 +32,7 @@ public class StatementTypeBinLogListener implements BinLogListener {
     
         String sql = eventData.getSql();
         BinLogConstants.OperatorType type = null;
-        BinLogData binLogData = null;
+        BinLogData binLogData;
         if(sql.toUpperCase().startsWith(BinLogConstants.OperatorType.INSERT.toString())) {
             type = BinLogConstants.OperatorType.INSERT;
             binLogData = DruidParser.insert(sql);
@@ -42,13 +43,14 @@ public class StatementTypeBinLogListener implements BinLogListener {
             type = BinLogConstants.OperatorType.DELETE;
             binLogData = DruidParser.delete(sql);
         } else {
-            throw new RuntimeException("未知的操作类型.");
+            binLogData = null;
+            throw new RuntimeException("Unknown type of action.");
         }
         binLogData.setDbName(eventData.getDatabase());
         binLogData.setType(type);
         binLogData.setTableName(binLogData.getTableName().replaceAll("`", ""));
-        
-        BinLogListenerCore.run(binLogData.getTableName(), binLogData.getDbName(), binLogData);
+
+        BinLogThreadPool.executeTask(new Thread(() -> BinLogListenerCore.run(binLogData.getTableName(), binLogData.getDbName(), binLogData)));
     }
     
 }

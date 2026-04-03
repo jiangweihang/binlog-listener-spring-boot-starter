@@ -1,15 +1,18 @@
 spring:
   application:
     name: binlog-listener-spring-boot-starter
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/test_anything?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: emiya
 
 server:
   port: 8886
 
 binlog:
   property:
-    host: localhost
-    port: 13306
+    host: 127.0.0.1
+    port: 3306
     username: root
-    password: mysql
-    db: labscare_base_huaxi
-    table: t_a_temp
+    password: emiya

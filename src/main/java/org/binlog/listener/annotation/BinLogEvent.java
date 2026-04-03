@@ -3,7 +3,7 @@ package org.binlog.listener.annotation;
 import java.lang.annotation.*;
 
 /**
- * 标记回调方法, 一个类只有只作用一个方法
+ * 标记回调方法, 一个类只作用一个方法
  * @author Emiya
  */
 @Documented

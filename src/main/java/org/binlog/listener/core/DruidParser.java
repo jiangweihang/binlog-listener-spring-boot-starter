@@ -91,8 +91,15 @@ public class DruidParser {
     
     private static List<Where> parseWhere(SQLExpr where) {
         List<Where> wheres = new ArrayList<>();
-        parseWhere(where.getChildren(), wheres);
-        return wheres;
+        if(((SQLBinaryOpExpr) where).getOperator().equals(SQLBinaryOperator.Equality)) {
+            //  说明只有一个条件
+            SQLBinaryOpExpr sqlBinaryOpExpr = (SQLBinaryOpExpr) where;
+            wheres.add(new Where(sqlBinaryOpExpr.getLeft().toString(), sqlBinaryOpExpr.getOperator(), sqlBinaryOpExpr.getRight().toString()));
+            return wheres;
+        } else {
+            parseWhere(where.getChildren(), wheres);
+            return wheres;
+        }
     }
     
     private static void parseWhere(List<SQLObject> children, List<Where> wheres) {
@@ -100,7 +107,13 @@ public class DruidParser {
             return;
         }
         for (SQLObject child : children) {
-            SQLBinaryOpExpr binaryOpExpr = (SQLBinaryOpExpr) child;
+            SQLBinaryOpExpr binaryOpExpr = null;
+            if(child instanceof SQLBinaryOpExpr) {
+                binaryOpExpr = (SQLBinaryOpExpr) child;
+            } else {
+                binaryOpExpr = (SQLBinaryOpExpr) child.getParent();
+            }
+
             if(binaryOpExpr.getOperator().equals(SQLBinaryOperator.BooleanAnd)) {
                 parseWhere(binaryOpExpr.getChildren(), wheres);
             } else {

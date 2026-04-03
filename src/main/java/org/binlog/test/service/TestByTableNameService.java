@@ -10,13 +10,12 @@ import org.binlog.listener.entity.BinLogData;
  * @date: 2024/1/25 15:49
  * @version: 1.0.0
  */
-@BinLogListener(tableName = "t_user", dbName = "test_anything")
-public class TestByDbNameService {
+@BinLogListener(tableName = "t_user_copy1")
+public class TestByTableNameService {
     
     @BinLogEvent
     public void event(BinLogData dto) {
-//        System.out.println("t_user: " + JSONObject.parseObject(JSONObject.toJSONString(dto)).getJSONArray("data").getJSONObject(0).getInteger("age"));
-        System.out.println(JSONObject.toJSONString(dto));
+        System.out.println("t_user_copy1: " + JSONObject.parseObject(JSONObject.toJSONString(dto)).getJSONArray("data").getJSONObject(0).getString("name"));
     }
     
 }
