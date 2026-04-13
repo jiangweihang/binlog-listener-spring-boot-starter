@@ -1,5 +1,6 @@
 package org.binlog.listener.core;
 
+import org.binlog.listener.cglib.BinLogProxy;
 import org.binlog.listener.cglib.BinLogServiceProxy;
 import org.binlog.listener.entity.Column;
 import org.springframework.util.StringUtils;
@@ -25,7 +26,7 @@ public class BinLogListenerCore {
     /**
      * key是表名(如果数据库名不为空，则是'数据库名.表名'), value是代理类. 主要代理被 {@link org.binlog.listener.annotation.BinLogListener} 注解的类
      */
-    private final static Map<String, BinLogServiceProxy> PROXY_MAP = new ConcurrentHashMap<>();
+    private final static Map<String, BinLogProxy> PROXY_MAP = new ConcurrentHashMap<>();
 
     /**
      * 第一个Map的key是表名，第二个Map的Key是数据库名, value是列集合
@@ -63,7 +64,7 @@ public class BinLogListenerCore {
      * @param value 代理类
      * @throws Exception 如果表的代理类已存在则抛出异常
      */
-    public static void put(String dbName, String tableName, BinLogServiceProxy value) throws Exception {
+    public static void put(String dbName, String tableName, BinLogProxy value) throws Exception {
         String key = tableName;
         if(!StringUtils.isEmpty(dbName)) {
             key = dbName + "." + tableName;
@@ -84,7 +85,7 @@ public class BinLogListenerCore {
         return COLUMN_MAP.containsKey(key);
     }
     
-    public static BinLogServiceProxy get(String key) {
+    public static BinLogProxy get(String key) {
         return PROXY_MAP.get(key);
     }
     
@@ -99,18 +100,28 @@ public class BinLogListenerCore {
      * @param data  数据信息
      */
     public static void run(String tableName, String dbName, Object data) {
-        BinLogServiceProxy binLogServiceProxy = get(dbName + "." + tableName);
+        BinLogProxy binLogProxy = get(dbName + "." + tableName);
         //  如果指定数据库+表代理的不存在, 才去获取表名代理的
-        if(binLogServiceProxy == null) {
-            binLogServiceProxy = get(tableName);
+        if(binLogProxy == null) {
+            binLogProxy = get(tableName);
         }
-        if(binLogServiceProxy == null) {
+        if(binLogProxy == null) {
             return;
         }
         try {
-            binLogServiceProxy.intercept(null, null, new Object[]{data}, null);
+            binLogProxy.intercept(null, null, new Object[]{data}, null);
         } catch (Throwable e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void shutdown() {
+        for (BinLogProxy proxy : PROXY_MAP.values()) {
+            try {
+                proxy.destroy();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

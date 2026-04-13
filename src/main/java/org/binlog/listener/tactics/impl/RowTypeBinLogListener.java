@@ -6,7 +6,6 @@ import org.binlog.listener.core.BinLogListenerCore;
 import org.binlog.listener.entity.Column;
 import org.binlog.listener.entity.row.BinLogRowData;
 import org.binlog.listener.tactics.BinLogListener;
-import org.binlog.listener.thread.BinLogThreadPool;
 
 import java.io.Serializable;
 import java.time.ZoneId;
@@ -81,7 +80,7 @@ public class RowTypeBinLogListener implements BinLogListener {
         }
 
         BinLogRowData dto = new BinLogRowData(tableName, database, type, columnList, rowList, updateBeforeList);
-        BinLogThreadPool.executeTask(() -> BinLogListenerCore.run(tableName, database, dto));
+        BinLogListenerCore.run(tableName, database, dto);
     }
 
     private void updateType(UpdateRowsEventData data, List<Column> columnList, List<Map<String, String>> rowList, List<Map<String, String>> updateBeforeList) {

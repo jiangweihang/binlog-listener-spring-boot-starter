@@ -1,5 +1,7 @@
 package org.binlog.listener.annotation;
 
+import org.binlog.listener.constant.BinLogConstants;
+
 import java.lang.annotation.*;
 
 /**
@@ -10,4 +12,10 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 public @interface BinLogEvent {
+
+    /**
+     * 回调方式
+     */
+    BinLogConstants.CallbackType callbackType() default BinLogConstants.CallbackType.DEFAULT;
+
 }

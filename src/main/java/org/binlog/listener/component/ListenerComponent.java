@@ -4,7 +4,9 @@ import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.github.shyiko.mysql.binlog.event.deserialization.EventDeserializer;
 import org.binlog.listener.annotation.BinLogEvent;
 import org.binlog.listener.annotation.EnableBinlogListener;
+import org.binlog.listener.cglib.BinLogProxy;
 import org.binlog.listener.cglib.BinLogServiceProxy;
+import org.binlog.listener.cglib.BinLogSingleServiceProxy;
 import org.binlog.listener.constant.BinLogConstants;
 import org.binlog.listener.core.BinLogListenerCore;
 import org.binlog.listener.entity.Column;
@@ -14,6 +16,7 @@ import org.binlog.listener.tactics.BinLogListener;
 import org.binlog.listener.tactics.impl.MixedTypeBinLogListener;
 import org.binlog.listener.tactics.impl.RowTypeBinLogListener;
 import org.binlog.listener.tactics.impl.StatementTypeBinLogListener;
+import org.binlog.listener.thread.BinLogThreadPool;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -35,6 +38,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -105,10 +109,15 @@ public class ListenerComponent implements ApplicationContextAware {
      */
     private static final String QUERY_BINLOG_FORMAT = "SHOW VARIABLES LIKE 'binlog_format';";
 
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        SpringContextUtils.applicationContext = applicationContext;
+    }
+
     /**
      * 1、初始化代理信息. 获取被 {@link org.binlog.listener.annotation.BinLogListener} 修饰的类, 并且用Cglib代理 <p>
      * 2、初始化已经加载的 {@link org.binlog.listener.annotation.BinLogListener#tableName()} 表字段信息 <p>
-     * 3、初始化监听器 {@link BinLogListener}
+     * 3、初始化监听器 {@link org.binlog.listener.annotation.BinLogListener}
      */
     @PostConstruct
     public void init() throws Exception {
@@ -122,6 +131,9 @@ public class ListenerComponent implements ApplicationContextAware {
         initListener(listener);
     }
 
+    /**
+     * 初始化代理信息
+     */
     private void initCglibBinLogListener() throws ClassNotFoundException {
         Set<String> basePackages = getBasePackages();
 
@@ -135,7 +147,6 @@ public class ListenerComponent implements ApplicationContextAware {
 
         //  遍历每一个basePackages
         for (String basePackage : basePackages) {
-            //  通过scanner获取basePackage下的候选类(有标@SimpleRpcClient注解的类)
             Set<BeanDefinition> candidateComponents = scanner.findCandidateComponents(basePackage);
             //  遍历每一个候选类，如果符合条件就把他们注册到容器
             for (BeanDefinition candidateComponent : candidateComponents) {
@@ -153,34 +164,55 @@ public class ListenerComponent implements ApplicationContextAware {
                         Object bean = SpringContextUtils.getBean(Class.forName(annotationMetadata.getClassName()));
                         Class<?> clazz = bean.getClass();
 
-                        for (Method method : clazz.getDeclaredMethods()) {
-                            //  获取下面所有被 @BinLogEvent 修饰的方法
-                            BinLogEvent annotation = method.getAnnotation(BinLogEvent.class);
-                            if (annotation == null) {
-                                continue;
-                            }
-
-                            //  私有方法无法代理
-                            if (Modifier.isPrivate(method.getModifiers())) {
-                                throw new Exception(String.format("The method [%s] is private, cannot be proxied.", clazz.getName() + "." + method.getName()));
-                            }
-
-                            //  cglib代理该类和方法
-                            ClassLoader servletUtil = clazz.getClassLoader();
-                            Class<?> jdkProxy = servletUtil.loadClass(candidateComponent.getBeanClassName());
-                            BinLogServiceProxy binLogServiceProxy = new BinLogServiceProxy(bean, method);
-
-                            //  根据表名和数据库名称放到内存中管理
-                            String dbName = attributes.get("dbName").toString();
-                            String tableName = attributes.get("tableName").toString();
-                            BinLogListenerCore.put(dbName, tableName, binLogServiceProxy);
-                            break;
-                        }
+                        createBinLogProxy(clazz, candidateComponent, bean, attributes);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * 创建binlog代理对象
+     * 搜索被 {@link org.binlog.listener.annotation.BinLogEvent} 修饰的方法, 并且用Cglib代理该类和方法(只代理一个方法)
+     * 私有方法会抛出异常
+     */
+    private void createBinLogProxy(Class<?> clazz, BeanDefinition candidateComponent, Object bean, Map<String, Object> attributes) throws Exception {
+        for (Method method : clazz.getDeclaredMethods()) {
+            //  获取下面所有被 @BinLogEvent 修饰的方法
+            BinLogEvent annotation = method.getAnnotation(BinLogEvent.class);
+            if (annotation == null) {
+                continue;
+            }
+
+            //  私有方法无法代理
+            if (Modifier.isPrivate(method.getModifiers())) {
+                throw new Exception(String.format("The method [%s] is private, cannot be proxied.", clazz.getName() + "." + method.getName()));
+            }
+
+            //  cglib代理该类和方法
+            ClassLoader servletUtil = clazz.getClassLoader();
+            Class<?> jdkProxy = servletUtil.loadClass(candidateComponent.getBeanClassName());
+
+            BinLogProxy binLogServiceProxy = createBinLogProxy(annotation, bean, method);
+
+            //  根据表名和数据库名称放到内存中管理
+            String dbName = attributes.get("dbName").toString();
+            String tableName = attributes.get("tableName").toString();
+            BinLogListenerCore.put(dbName, tableName, binLogServiceProxy);
+            break;
+        }
+    }
+
+    /**
+     * 根据配置的 {@link org.binlog.listener.annotation.BinLogEvent#callbackType()} 选择不同的代理类
+     */
+    private BinLogProxy createBinLogProxy(BinLogEvent annotation, Object bean, Method method) {
+        if (annotation.callbackType() == BinLogConstants.CallbackType.SINGLE) {
+            return new BinLogSingleServiceProxy(bean, method);
+        } else {
+            return new BinLogServiceProxy(bean, method);
         }
     }
 
@@ -282,7 +314,7 @@ public class ListenerComponent implements ApplicationContextAware {
 
     /**
      * 获取base packages <p>
-     * 如果 {@link EnableBinlogListener#packages()} 有值则使用其值，如果没有则使用当前类所在的包为basePackages
+     * 如果 {@link org.binlog.listener.annotation.EnableBinlogListener#packages()} 有值则使用其值，如果没有则使用当前类所在的包为basePackages
      */
     private Set<String> getBasePackages() throws ClassNotFoundException {
         //  获取启动类名
@@ -312,7 +344,7 @@ public class ListenerComponent implements ApplicationContextAware {
     /**
      * 创建扫描器
      */
-    protected ClassPathScanningCandidateComponentProvider getScanner() {
+    private ClassPathScanningCandidateComponentProvider getScanner() {
         return new ClassPathScanningCandidateComponentProvider(false, environment) {
             @Override
             protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
@@ -329,7 +361,7 @@ public class ListenerComponent implements ApplicationContextAware {
 
     /**
      * 初始化监听器 <p>
-     * 根据mysql配置的binlog-format策略选择 {@link BinLogListener}
+     * 根据mysql配置的binlog-format策略选择 {@link org.binlog.listener.annotation.BinLogListener}
      */
     private void initListener(BinLogListener listener) {
         new Thread(() -> {
@@ -350,9 +382,10 @@ public class ListenerComponent implements ApplicationContextAware {
         }).start();
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        SpringContextUtils.applicationContext = applicationContext;
+    @PreDestroy
+    public void destroy() {
+        BinLogThreadPool.shutdown();
+        BinLogListenerCore.shutdown();
     }
 
 }

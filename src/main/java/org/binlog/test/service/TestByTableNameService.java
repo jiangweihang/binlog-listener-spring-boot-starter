@@ -15,7 +15,7 @@ public class TestByTableNameService {
     
     @BinLogEvent
     public void event(BinLogData dto) {
-        System.out.println("t_user_copy1: " + JSONObject.parseObject(JSONObject.toJSONString(dto)).getJSONArray("data").getJSONObject(0).getString("name"));
+        System.out.println("t_user_copy1: " + JSONObject.parseObject(JSONObject.toJSONString(dto)));
     }
     
 }

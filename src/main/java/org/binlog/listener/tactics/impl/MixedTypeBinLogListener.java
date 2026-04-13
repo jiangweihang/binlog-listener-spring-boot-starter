@@ -1,9 +1,7 @@
 package org.binlog.listener.tactics.impl;
 
 import com.github.shyiko.mysql.binlog.event.Event;
-import com.github.shyiko.mysql.binlog.event.EventData;
 import com.github.shyiko.mysql.binlog.event.EventType;
-import com.github.shyiko.mysql.binlog.event.QueryEventData;
 import org.binlog.listener.tactics.BinLogListener;
 
 import static com.github.shyiko.mysql.binlog.event.EventType.*;

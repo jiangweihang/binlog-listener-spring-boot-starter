@@ -1,5 +1,7 @@
 package org.binlog.listener.constant;
 
+import org.binlog.listener.annotation.BinLogListener;
+
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
@@ -23,8 +25,11 @@ public class BinLogConstants {
             char.class, Character.class,
             String.class,
             BigDecimal .class);
-    
-    public static enum OperatorType {
+
+    /**
+     * 操作类型
+     */
+    public enum OperatorType {
         /**
          * 插入
          */
@@ -39,7 +44,10 @@ public class BinLogConstants {
         DELETE
     }
 
-    public static enum BinLogMode {
+    /**
+     * MySQL binlog模式
+     */
+    public enum BinLogMode {
         /**
          * STATEMENT模式
          */
@@ -52,6 +60,17 @@ public class BinLogConstants {
          * MIXED模式
          */
         MIXED
+    }
+
+    public enum CallbackType {
+        /**
+         * 默认, 保证回调 {@link org.binlog.listener.annotation.BinLogEvent} 方法前的线程安全
+         */
+        DEFAULT,
+        /**
+         * 单线程执行(等待回调方法执行完, 会阻塞其他线程)
+         */
+        SINGLE
     }
     
 }
