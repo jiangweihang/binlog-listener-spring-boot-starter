@@ -10,15 +10,18 @@ import org.binlog.listener.cglib.BinLogSingleServiceProxy;
 import org.binlog.listener.constant.BinLogConstants;
 import org.binlog.listener.core.BinLogListenerCore;
 import org.binlog.listener.entity.Column;
+import org.binlog.listener.property.BinLog;
 import org.binlog.listener.property.BinLogProperty;
 import org.binlog.listener.spring.SpringContextUtils;
 import org.binlog.listener.tactics.BinLogListener;
 import org.binlog.listener.tactics.impl.MixedTypeBinLogListener;
 import org.binlog.listener.tactics.impl.RowTypeBinLogListener;
 import org.binlog.listener.tactics.impl.StatementTypeBinLogListener;
+import org.binlog.listener.thread.BinLogPolicy;
 import org.binlog.listener.thread.BinLogThreadPool;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -61,15 +64,19 @@ public class ListenerComponent implements ApplicationContextAware {
 
     private final Environment environment;
 
-    private final BinLogProperty binLogProperty;
+    private final BinLog binLog;
 
     private final JdbcTemplate jdbcTemplate;
 
-    public ListenerComponent(ResourceLoader resourceLoader, Environment environment, BinLogProperty binLogProperty, JdbcTemplate jdbcTemplate) {
+    private final BinLogPolicy binLogPolicy;
+
+    public ListenerComponent(ResourceLoader resourceLoader, Environment environment,
+                             BinLog binLog, JdbcTemplate jdbcTemplate, @Autowired(required = false) BinLogPolicy binLogPolicy) {
         this.resourceLoader = resourceLoader;
         this.environment = environment;
-        this.binLogProperty = binLogProperty;
+        this.binLog = binLog;
         this.jdbcTemplate = jdbcTemplate;
+        this.binLogPolicy = binLogPolicy;
     }
 
     /**
@@ -121,13 +128,16 @@ public class ListenerComponent implements ApplicationContextAware {
      */
     @PostConstruct
     public void init() throws Exception {
-        //  1、初始化代理信息
+        //  1、初始化线程池信息
+        new BinLogThreadPool(binLog, binLogPolicy);
+
+        //  2、初始化代理信息
         initCglibBinLogListener();
 
-        //  2、初始化监听的表信息
+        //  3、初始化监听的表信息
         BinLogListener listener = initListenerTableInfo();
 
-        //  3、初始化监听器
+        //  4、初始化监听器
         initListener(listener);
     }
 
@@ -364,9 +374,10 @@ public class ListenerComponent implements ApplicationContextAware {
      * 根据mysql配置的binlog-format策略选择 {@link org.binlog.listener.annotation.BinLogListener}
      */
     private void initListener(BinLogListener listener) {
+        BinLogProperty property = binLog.getProperty();
         new Thread(() -> {
-            BinaryLogClient client = new BinaryLogClient(binLogProperty.getHost(), binLogProperty.getPort(),
-                    binLogProperty.getUsername(), binLogProperty.getPassword());
+            BinaryLogClient client = new BinaryLogClient(property.getHost(), property.getPort(),
+                    property.getUsername(), property.getPassword());
             EventDeserializer eventDeserializer = new EventDeserializer();
             eventDeserializer.setCompatibilityMode(
                     EventDeserializer.CompatibilityMode.DATE_AND_TIME_AS_LONG,

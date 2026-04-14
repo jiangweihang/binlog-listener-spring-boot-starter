@@ -17,7 +17,7 @@ public class TestByDbNameService {
     @BinLogEvent(callbackType = BinLogConstants.CallbackType.SINGLE)
     public void event(BinLogData dto) throws InterruptedException {
 //        System.out.println("t_user: " + JSONObject.parseObject(JSONObject.toJSONString(dto)).getJSONArray("data").getJSONObject(0).getInteger("age"));
-        Thread.sleep(2000L);
+        Thread.sleep(20000L);
         System.out.println(JSONObject.toJSONString(dto));
     }
     

@@ -16,3 +16,10 @@ binlog:
     port: 3306
     username: root
     password: emiya
+  thread:
+    corePoolSize: 5
+    maximumPoolSize: 5
+    keepAliveTimeSeconds: 60
+    queueCapacity: 500
+    threadName: BinLogPoolThread-
+    daemon: true

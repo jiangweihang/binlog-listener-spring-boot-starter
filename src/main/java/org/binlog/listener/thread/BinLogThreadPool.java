@@ -2,6 +2,7 @@ package org.binlog.listener.thread;
 
 import org.binlog.listener.annotation.BinLogEvent;
 import org.binlog.listener.constant.BinLogConstants;
+import org.binlog.listener.property.BinLog;
 
 import java.util.List;
 import java.util.concurrent.*;
@@ -13,34 +14,52 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @version: 1.0.0
  */
 public class BinLogThreadPool {
-    
+
+    private final BinLog binLog;
+
     /**
      * 创建一个线程工厂，用于定制线程的创建
      */
-    private static final ThreadFactory THREAD_FACTORY = new ThreadFactory() {
-        private final AtomicInteger threadId = new AtomicInteger(0);
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread thread = new Thread(r);
-            thread.setName("BinLogPoolThread-" + threadId.getAndIncrement());
-            thread.setDaemon(true);
-            return thread;
-        }
-    };
-    
+    private static ThreadFactory THREAD_FACTORY = null;
+
     /**
      * 创建固定大小的线程池，使用无界队列保证任务不会被拒绝
      */
-    private static final ExecutorService THREAD_POOL = new ThreadPoolExecutor(
-            5,
-            10,
-            60L,
-            TimeUnit.SECONDS,
-            new ArrayBlockingQueue<Runnable>(500),
-            THREAD_FACTORY,
-            new ThreadPoolExecutor.CallerRunsPolicy()
-    );
-    
+    private static ExecutorService THREAD_POOL = null;
+
+    private static RejectedExecutionHandler handler = null;
+
+    public BinLogThreadPool(BinLog binLog, RejectedExecutionHandler rejectedExecutionHandler) {
+        this.binLog = binLog;
+
+        //  初始化线程池拒绝策略
+        handler = rejectedExecutionHandler != null ?
+                rejectedExecutionHandler : new BinLogPolicy();
+
+        //  初始化线程工厂
+        THREAD_FACTORY = new ThreadFactory() {
+            private final AtomicInteger threadId = new AtomicInteger(0);
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r);
+                thread.setName(binLog.getThread().getThreadName() + threadId.getAndIncrement());
+                thread.setDaemon(true);
+                return thread;
+            }
+        };
+
+        //  初始化线程池
+        THREAD_POOL = new ThreadPoolExecutor(
+                binLog.getThread().getCorePoolSize(),
+                binLog.getThread().getMaximumPoolSize(),
+                binLog.getThread().getKeepAliveTimeSeconds(),
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<Runnable>(binLog.getThread().getQueueCapacity()),
+                THREAD_FACTORY,
+                handler
+        );
+    }
+
     public static void executeTask(Runnable task) {
         THREAD_POOL.execute(task);
     }
@@ -54,9 +73,9 @@ public class BinLogThreadPool {
                 1,
                 1,
                 60L, TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(200),
+                new ArrayBlockingQueue<>(1),
                 THREAD_FACTORY,
-                new ThreadPoolExecutor.CallerRunsPolicy()
+                handler
         );
     }
 

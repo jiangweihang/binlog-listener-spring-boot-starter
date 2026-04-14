@@ -1,13 +1,10 @@
 package org.binlog.listener.property;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 /**
  * @author: JiangWH
  * @date: 2024/1/25 15:27
  * @version: 1.0.0
  */
-@ConfigurationProperties(prefix = "binlog.property")
 public class BinLogProperty {
 
     private String host;
