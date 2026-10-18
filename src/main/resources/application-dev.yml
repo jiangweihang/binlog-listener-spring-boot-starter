@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: binlog-listener-spring-boot-starter
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/test_anything?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: emiya
+
+server:
+  port: 8886
+
+binlog:
+  property:
+    host: 127.0.0.1
+    port: 3306
+    username: root
+    password: emiya
+  thread:
+    corePoolSize: 5
+    maximumPoolSize: 5
+    keepAliveTimeSeconds: 60
+    queueCapacity: 500
+    threadName: BinLogPoolThread-
+    daemon: true

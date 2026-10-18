@@ -1,14 +1,12 @@
 package org.binlog.listener.core;
 
 import org.binlog.listener.cglib.BinLogProxy;
-import org.binlog.listener.cglib.BinLogServiceProxy;
 import org.binlog.listener.entity.Column;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**

@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import org.binlog.listener.annotation.BinLogEvent;
 import org.binlog.listener.annotation.BinLogListener;
 import org.binlog.listener.entity.BinLogData;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author: JiangWH
@@ -12,10 +14,18 @@ import org.binlog.listener.entity.BinLogData;
  */
 @BinLogListener(tableName = "t_user_copy1")
 public class TestByTableNameService {
+
+    @Autowired
+    private TestService testService;
     
     @BinLogEvent
     public void event(BinLogData dto) {
         System.out.println("t_user_copy1: " + JSONObject.parseObject(JSONObject.toJSONString(dto)));
+    }
+
+    @Transactional
+    public void test() {
+        System.out.println("这是事务处理");
     }
     
 }
